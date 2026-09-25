@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Package, Search } from "lucide-react";
+import { Archive, Package, Search, Trash2 } from "lucide-react";
 
 import { PageHeader, QuickCreateLink, StatusPill } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,12 @@ function ProductThumbnail({ product, className }: { product: { name: string; ima
 }
 
 export default function ProductsPage() {
-  const { snapshot, categories } = useWorkspace();
+  const { snapshot, categories, archiveProducts, deleteProduct } = useWorkspace();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [actionError, setActionError] = useState("");
   const rows = useMemo(
     () => snapshot.data.products.flatMap((product) => product.variants.map((variant) => ({ product, variant }))).filter(({ product, variant }) => {
       const haystack = `${product.name} ${product.category} ${variant.variantName} ${variant.sku}`.toLowerCase();
@@ -28,6 +31,46 @@ export default function ProductsPage() {
     }),
     [snapshot.data.products, search, category],
   );
+  const visibleProductIds = useMemo(() => Array.from(new Set(rows.map(({ product }) => product.id))), [rows]);
+  const allVisibleSelected = visibleProductIds.length > 0 && visibleProductIds.every((productId) => selectedProductIds.has(productId));
+
+  function toggleProduct(productId: string) {
+    setSelectedProductIds((current) => {
+      const next = new Set(current);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  }
+
+  function toggleAllVisible() {
+    setSelectedProductIds((current) => {
+      const next = new Set(current);
+      if (allVisibleSelected) visibleProductIds.forEach((productId) => next.delete(productId));
+      else visibleProductIds.forEach((productId) => next.add(productId));
+      return next;
+    });
+  }
+
+  async function runBulkAction(action: "archive" | "delete", productIds: string[]) {
+    if (!productIds.length) return;
+    const selectedProducts = productIds.map((productId) => snapshot.data.products.find((product) => product.id === productId)?.name).filter(Boolean).join(", ");
+    const message = action === "delete"
+      ? `Delete ${productIds.length} selected product${productIds.length === 1 ? "" : "s"}? Products with stock or order history will be rejected.`
+      : `Archive ${productIds.length} selected product${productIds.length === 1 ? "" : "s"}? They will be hidden from normal operations.`;
+    if (!window.confirm(`${message}\n\n${selectedProducts}`)) return;
+    setActionError("");
+    setBulkSaving(true);
+    try {
+      if (action === "archive") await archiveProducts(productIds);
+      else for (const productId of productIds) await deleteProduct(productId);
+      setSelectedProductIds(new Set());
+    } catch (caught) {
+      setActionError(caught instanceof Error ? caught.message : `Could not ${action} the selected products.`);
+    } finally {
+      setBulkSaving(false);
+    }
+  }
 
   function getStatus(variant: (typeof rows)[number]["variant"], productActive: boolean) {
     if (!productActive || !variant.isActive) return { label: "Inactive", tone: "slate" as const };
@@ -61,9 +104,10 @@ export default function ProductsPage() {
 
       <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[980px] text-left text-sm">
+          <table className="w-full min-w-[1080px] text-left text-sm">
             <thead className="bg-muted/40 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               <tr className="border-b">
+                <th className="w-12 px-4 py-3"><input aria-label="Select all visible products" checked={allVisibleSelected} className="size-4 rounded border-input accent-primary" onChange={toggleAllVisible} type="checkbox" /></th>
                 <th className="px-4 py-3">Product / variant</th>
                 <th className="px-4 py-3">SKU</th>
                 <th className="px-4 py-3 text-right">Price</th>
@@ -76,8 +120,10 @@ export default function ProductsPage() {
             <tbody>
               {rows.map(({ product, variant }) => {
                 const status = getStatus(variant, product.isActive);
+                const isFirstVariant = product.variants[0]?.id === variant.id;
                 return (
                   <tr key={variant.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="px-4 py-3.5 align-top">{isFirstVariant ? <input aria-label={`Select ${product.name}`} checked={selectedProductIds.has(product.id)} className="mt-1 size-4 rounded border-input accent-primary" onChange={() => toggleProduct(product.id)} type="checkbox" /> : null}</td>
                     <td className="px-4 py-3.5">
                       <div className="flex min-w-0 items-center gap-3">
                         <ProductThumbnail className="size-10 rounded-lg" product={product} />
@@ -92,7 +138,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3.5 text-right font-semibold tabular-nums">{variant.stock}</td>
                     <td className="px-4 py-3.5 text-right text-muted-foreground tabular-nums">{variant.lowStockThreshold}</td>
                     <td className="px-4 py-3.5"><StatusPill tone={status.tone}>{status.label}</StatusPill></td>
-                    <td className="px-4 py-3.5 text-right"><Button asChild variant="ghost" size="sm"><Link href={`/products/${product.id}/edit`}>Edit</Link></Button></td>
+                    <td className="px-4 py-3.5 text-right"><div className="flex justify-end gap-1"><Button asChild variant="ghost" size="sm"><Link href={`/products/${product.id}/edit`}>Edit</Link></Button><Button className="text-rose-700 hover:bg-rose-50 hover:text-rose-800" disabled={bulkSaving} onClick={() => runBulkAction("delete", [product.id])} size="sm" type="button" variant="ghost"><Trash2 aria-hidden="true" />Delete</Button></div></td>
                   </tr>
                 );
               })}
@@ -107,6 +153,7 @@ export default function ProductsPage() {
               <div key={variant.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
+                    <input aria-label={`Select ${product.name}`} checked={selectedProductIds.has(product.id)} className="mt-2 size-4 shrink-0 rounded border-input accent-primary" onChange={() => toggleProduct(product.id)} type="checkbox" />
                     <ProductThumbnail className="size-14 rounded-xl" product={product} />
                     <div className="min-w-0">
                       <Link href={`/products/${product.id}/edit`} className="font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{product.name}</Link>
@@ -121,7 +168,7 @@ export default function ProductsPage() {
                   <div><p className="text-xs text-muted-foreground">Quantity on hand</p><p className="mt-1 font-semibold tabular-nums">{variant.stock} units</p></div>
                   <div className="text-right"><p className="text-xs text-muted-foreground">Low-stock threshold</p><p className="mt-1 tabular-nums">{variant.lowStockThreshold}</p></div>
                 </div>
-                <div className="mt-4 flex justify-end"><Button asChild variant="outline" size="sm"><Link href={`/products/${product.id}/edit`}>Edit product</Link></Button></div>
+                <div className="mt-4 flex justify-end gap-2"><Button asChild variant="outline" size="sm"><Link href={`/products/${product.id}/edit`}>Edit product</Link></Button><Button className="text-rose-700 hover:bg-rose-50 hover:text-rose-800" disabled={bulkSaving} onClick={() => runBulkAction("delete", [product.id])} size="sm" type="button" variant="outline"><Trash2 aria-hidden="true" />Delete</Button></div>
               </div>
             );
           })}
@@ -136,6 +183,9 @@ export default function ProductsPage() {
           </div>
         ) : null}
       </div>
+
+      {actionError ? <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-800" role="alert">{actionError}</p> : null}
+      {selectedProductIds.size ? <div className="mt-4 flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-3 text-sm"><input aria-label="Select all visible products" checked={allVisibleSelected} className="size-4 rounded border-input accent-primary" onChange={toggleAllVisible} type="checkbox" /><span><strong>{selectedProductIds.size}</strong> product{selectedProductIds.size === 1 ? "" : "s"} selected</span></div><div className="flex flex-wrap gap-2"><Button disabled={bulkSaving} onClick={() => runBulkAction("archive", Array.from(selectedProductIds))} size="sm" type="button" variant="outline"><Archive aria-hidden="true" />Archive selected</Button><Button disabled={bulkSaving} onClick={() => runBulkAction("delete", Array.from(selectedProductIds))} size="sm" type="button" variant="destructive"><Trash2 aria-hidden="true" />Delete selected</Button></div></div> : null}
     </div>
   );
 }

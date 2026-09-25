@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   ShoppingCart,
-  Sparkles,
   Star,
   Tag,
   Truck,
@@ -409,27 +408,24 @@ export function LandingPage({ snapshot }: { snapshot: PublicStoreSnapshot }) {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#fffaf5] text-foreground">
       <div className="bg-orange-600 px-4 py-2 text-center text-xs font-semibold text-white">
-        <span>{snapshot.mode === "demo" ? "Demo storefront · sample products are clearly labelled" : "New collection · browse what is currently available"}</span>
+        <span>Shop the Kawisha Hub collection</span>
         <span className="mx-2 text-orange-200">·</span>
-        <Link className="underline underline-offset-2 hover:text-orange-100" href="/store">Shop now</Link>
+        <span>{products.length} products ready to browse</span>
       </div>
 
-      <header className="sticky top-0 z-40 border-b bg-[#fffaf5]/95 shadow-sm backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
+      <header className="sticky top-0 z-40 border-b bg-white/95 shadow-sm backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-5 py-3">
           <Link className="flex min-w-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500" href="/" onClick={closeMobileMenu}>
             <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">KH</span>
-            <span className="truncate text-sm font-bold tracking-tight sm:text-base">{snapshot.data.businessName}</span>
+            <span className="truncate text-sm font-bold tracking-tight">{snapshot.data.businessName}</span>
           </Link>
           <form className="order-3 w-full lg:order-none lg:mx-5 lg:flex-1" onSubmit={submitSearch}>
             <label className="relative block">
               <span className="sr-only">Search products</span>
               <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input className="h-11 w-full rounded-full border border-orange-200 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-orange-500" onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search fashion, home, bags, and more" value={searchQuery} />
+              <input className="h-11 w-full rounded-full border border-orange-200 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-orange-500" onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search products, categories, or SKU" value={searchQuery} />
             </label>
           </form>
-          <nav aria-label="Storefront" className="hidden items-center gap-1 xl:flex">
-            {navigationItems.slice(0, 3).map((item) => <a className="rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500" href={item.href} key={item.href}>{item.label}</a>)}
-          </nav>
           <div className="ml-auto flex items-center gap-1.5">
             <Button aria-label={"Open cart with " + cartCount + " items"} asChild size="sm" variant="outline">
               <Link href="/store">
@@ -441,16 +437,16 @@ export function LandingPage({ snapshot }: { snapshot: PublicStoreSnapshot }) {
             <Button aria-label="Open customer account" asChild className="hidden sm:inline-flex" size="sm" variant="ghost">
               <Link href="/account"><UserRound aria-hidden="true" /><span className="hidden lg:inline">Account</span></Link>
             </Button>
-            <Button asChild className="hidden md:inline-flex" size="sm">
-              <Link href="/store">Shop <ArrowRight aria-hidden="true" /></Link>
+            <Button asChild className="hidden md:inline-flex" size="sm" variant="outline">
+              <Link href="/auth/login">Owner login</Link>
             </Button>
-            <button aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 xl:hidden" onClick={() => setMobileMenuOpen((open) => !open)} type="button">
+            <button aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 md:hidden" onClick={() => setMobileMenuOpen((open) => !open)} type="button">
               {mobileMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
             </button>
           </div>
         </div>
         {mobileMenuOpen ? (
-          <div className="border-t bg-[#fffaf5] px-4 py-3 xl:hidden">
+          <div className="border-t bg-white px-4 py-3 md:hidden">
             <nav aria-label="Mobile storefront" className="grid gap-1">
               {navigationItems.map((item) => <a className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-orange-50 hover:text-orange-700" href={item.href} key={item.href} onClick={closeMobileMenu}>{item.label}</a>)}
               <Link className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-orange-50 hover:text-orange-700" href="/account" onClick={closeMobileMenu}>Customer account</Link>
@@ -463,42 +459,29 @@ export function LandingPage({ snapshot }: { snapshot: PublicStoreSnapshot }) {
       {cartNotice ? <div aria-live="polite" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white shadow-xl">{cartNotice}</div> : null}
 
       <main>
-        <section className="mx-auto max-w-7xl px-4 pb-8 pt-5 sm:pb-12 sm:pt-8">
-          <div className="relative isolate overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-2xl shadow-orange-950/10">
-            <div aria-hidden="true" className="storefront-breathe absolute -left-20 -top-32 size-80 rounded-full bg-orange-500/30 blur-3xl" />
-            <div className="grid min-h-[34rem] lg:grid-cols-[0.93fr_1.07fr]">
-              <div className="landing-reveal relative z-10 flex flex-col justify-center px-6 py-12 sm:px-10 sm:py-16">
-                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-orange-200/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-orange-100">
-                  <Sparkles aria-hidden="true" className="size-3.5" />
-                  Fresh finds for everyday life
+        <section className="mx-auto max-w-7xl px-5 pb-8 pt-5 sm:pb-12">
+          <div className="overflow-hidden rounded-[2rem] bg-orange-50 shadow-sm">
+            <div className="grid min-h-[31rem] lg:grid-cols-[0.93fr_1.07fr]">
+              <div className="flex flex-col justify-center px-6 py-12 sm:px-10 sm:py-14">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-700">Shop the collection</p>
+                <h1 className="mt-4 max-w-xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">Find something good for the everyday.</h1>
+                <p className="mt-4 max-w-lg text-sm leading-6 text-slate-600 sm:text-base">Browse the products currently available from {snapshot.data.businessName}, choose a variant, and keep your picks together in one simple cart.</p>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-orange-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2" href="/store">Shop now <ArrowRight aria-hidden="true" className="size-4" /></Link>
+                  <Link className="inline-flex h-10 items-center justify-center rounded-md border border-orange-200 bg-white/70 px-5 text-sm font-semibold text-orange-800 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2" href="/account">View account</Link>
                 </div>
-                <h1 className="mt-6 max-w-xl text-4xl font-black tracking-tight sm:text-6xl">
-                  Your One-Stop Shop for Fashion, Footwear, Accessories &amp; Home Essentials.
-                </h1>
-                <p className="mt-5 max-w-lg text-sm leading-7 text-slate-300 sm:text-base">
-                  Discover pieces for every mood, moment, and room. Browse the current collection, compare options, and move from product discovery to your cart in just a few clicks.
-                </p>
-                <div className="mt-8 grid max-w-md grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-                  <Button asChild className="w-full min-w-0 px-2 text-xs sm:w-auto sm:px-5 sm:text-sm" size="lg">
-                    <Link href="/store">Shop the collection <ArrowRight aria-hidden="true" /></Link>
-                  </Button>
-                  <a className="inline-flex h-10 w-full min-w-0 items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-2 text-xs font-semibold text-white transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:h-11 sm:w-auto sm:px-5 sm:text-sm" href="#categories">
-                    Shop by category <ChevronRight aria-hidden="true" />
-                  </a>
-                </div>
-                <div className="mt-9 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-300">
-                  <span className="inline-flex items-center gap-1.5"><Check aria-hidden="true" className="size-3.5 text-orange-300" /> Easy browsing</span>
-                  <span className="inline-flex items-center gap-1.5"><Check aria-hidden="true" className="size-3.5 text-orange-300" /> Stock-aware catalogue</span>
-                  <span className="inline-flex items-center gap-1.5"><Check aria-hidden="true" className="size-3.5 text-orange-300" /> Mobile-ready</span>
+                <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-600">
+                  <span className="inline-flex items-center gap-1.5"><Check aria-hidden="true" className="size-3.5 text-orange-600" /> {products.length} products</span>
+                  <span className="inline-flex items-center gap-1.5"><Check aria-hidden="true" className="size-3.5 text-orange-600" /> {productCategories.length} categories</span>
+                  <span className="inline-flex items-center gap-1.5"><Check aria-hidden="true" className="size-3.5 text-orange-600" /> Mobile-ready browsing</span>
                 </div>
               </div>
-              <div className="relative min-h-[18rem] overflow-hidden lg:min-h-0">
-                <Image alt="Kawisha Hub collection of clothing and lifestyle products" className="object-cover opacity-90" fill priority sizes="(max-width: 1024px) 100vw, 55vw" src="/marketing/product-collection.png" />
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/25 to-transparent" />
-                <div className="absolute bottom-6 right-6 rounded-2xl border border-white/20 bg-slate-950/75 px-4 py-3 text-right shadow-xl backdrop-blur">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-orange-300">Kawisha Hub</p>
-                  <p className="mt-1 text-sm font-semibold">New collection</p>
-                  <p className="mt-1 text-xs text-slate-300">{products.length || "Your"} products to discover</p>
+              <div className="relative min-h-[15rem] overflow-hidden lg:min-h-0">
+                <Image alt="Kawisha Hub collection of clothing and lifestyle products" className="object-cover" fill priority sizes="(max-width: 1024px) 100vw, 55vw" src="/marketing/product-collection.png" />
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-50 via-orange-50/20 to-transparent lg:from-orange-50 lg:via-transparent" />
+                <div className="absolute bottom-4 right-4 rounded-xl border border-white/70 bg-white/90 px-3 py-2 text-right shadow-lg backdrop-blur">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-orange-700">Kawisha Hub</p>
+                  <p className="mt-0.5 text-xs font-semibold text-slate-900">Current collection</p>
                 </div>
               </div>
             </div>

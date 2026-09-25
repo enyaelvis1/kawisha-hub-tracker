@@ -80,6 +80,13 @@ describe("database guardrails", () => {
     assert.match(sql, /whatsapp_number ~ '\^\[0-9\]\*\$'/);
   });
 
+  it("declares owner-scoped WhatsApp inbox deletion", () => {
+    const sql = readFileSync(new URL("../supabase/migrations/202609250007_whatsapp_request_delete_policy.sql", import.meta.url), "utf8");
+    assert.match(sql, /create policy whatsapp_requests_member_delete/);
+    assert.match(sql, /for delete to authenticated/);
+    assert.match(sql, /public\.is_business_member\(business_id\)/);
+  });
+
   it("builds a pre-filled WhatsApp order message", () => {
     const message = buildWhatsAppMessage({
       businessName: "Kawisha Hub NG",

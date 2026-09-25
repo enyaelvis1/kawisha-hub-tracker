@@ -50,6 +50,10 @@ function requireWholeNumber(value: number, label: string, minimum = 0) {
   if (!Number.isInteger(value) || value < minimum) throw new Error(`${label} must be a whole number of at least ${minimum}`);
 }
 
+function normalizeIds(ids: string[]) {
+  return Array.from(new Set(ids.filter((id): id is string => typeof id === "string" && id.trim().length > 0).map((id) => id.trim()))).slice(0, 100);
+}
+
 export async function createProduct(input: ProductInput) {
   const { supabase, businessId } = await getBusinessContext();
   requireWholeNumber(input.priceCents, "Price");
@@ -139,6 +143,19 @@ export async function deleteProduct(productId: string) {
   revalidatePath("/store");
 }
 
+export async function archiveProducts(productIds: string[]) {
+  const { supabase, businessId } = await getBusinessContext();
+  const ids = normalizeIds(productIds);
+  if (!ids.length) return;
+  const productsResult = await supabase.from("products").update({ is_active: false }).eq("business_id", businessId).in("id", ids);
+  if (productsResult.error) throw productsResult.error;
+  const variantsResult = await supabase.from("product_variants").update({ is_active: false }).eq("business_id", businessId).in("product_id", ids);
+  if (variantsResult.error) throw variantsResult.error;
+  revalidatePath("/dashboard");
+  revalidatePath("/products");
+  revalidatePath("/store");
+}
+
 export async function addVariant(input: VariantInput) {
   const { supabase, businessId } = await getBusinessContext();
   requireWholeNumber(input.priceCents, "Price");
@@ -197,6 +214,17 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   revalidatePath("/products");
 }
 
+export async function deleteOrder(orderId: string) {
+  const { supabase, businessId } = await getBusinessContext();
+  const movementResult = await supabase.from("stock_movements").select("id").eq("business_id", businessId).eq("order_id", orderId).limit(1);
+  if (movementResult.error) throw movementResult.error;
+  if (movementResult.data?.length) throw new Error("Orders with stock history cannot be deleted. Keep the order and use its status controls instead.");
+  const { error } = await supabase.from("orders").delete().eq("id", orderId).eq("business_id", businessId);
+  if (error) throw error;
+  revalidatePath("/dashboard");
+  revalidatePath("/orders");
+}
+
 export async function updatePaymentStatus(orderId: string, status: PaymentStatus) {
   const { supabase, businessId } = await getBusinessContext();
   const { error } = await supabase.from("orders").update({ payment_status: status }).eq("id", orderId).eq("business_id", businessId);
@@ -213,6 +241,14 @@ export async function updateWhatsAppRequestStatus(requestId: string, status: Wha
     .update({ status })
     .eq("id", requestId)
     .eq("business_id", businessId);
+  if (error) throw error;
+  revalidatePath("/inbox");
+  revalidatePath("/dashboard");
+}
+
+export async function deleteWhatsAppRequest(requestId: string) {
+  const { supabase, businessId } = await getBusinessContext();
+  const { error } = await supabase.from("whatsapp_order_requests").delete().eq("id", requestId).eq("business_id", businessId);
   if (error) throw error;
   revalidatePath("/inbox");
   revalidatePath("/dashboard");

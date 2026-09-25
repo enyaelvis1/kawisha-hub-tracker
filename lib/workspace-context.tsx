@@ -44,10 +44,12 @@ type WorkspaceContextValue = {
   addProduct: (input: ProductInput) => Promise<string>;
   updateProduct: (input: ProductEditInput) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
+  archiveProducts: (productIds: string[]) => Promise<void>;
   addVariant: (input: VariantInput) => Promise<void>;
   recordStock: (input: StockInput) => Promise<void>;
   createOrder: (input: OrderInput) => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order["status"]) => Promise<void>;
+  deleteOrder: (orderId: string) => Promise<void>;
   updatePaymentStatus: (orderId: string, status: Order["paymentStatus"]) => Promise<void>;
   updateBusiness: (businessName: string, currencyCode: string, storefrontEnabled: boolean, checkoutMethod: CheckoutMethod, whatsappNumber: string) => Promise<void>;
 };
@@ -162,6 +164,23 @@ export function WorkspaceProvider({ initialSnapshot, children }: { initialSnapsh
     setSnapshot((current) => ({ ...current, data: { ...current.data, products: current.data.products.filter((product) => product.id !== productId) } }));
   }
 
+  async function archiveProducts(productIds: string[]) {
+    if (!productIds.length) return;
+    if (!isDemo) {
+      const { archiveProducts: archiveLiveProducts } = await import("@/app/(app)/actions");
+      await archiveLiveProducts(productIds);
+      router.refresh();
+      return;
+    }
+    setSnapshot((current) => ({
+      ...current,
+      data: {
+        ...current.data,
+        products: current.data.products.map((product) => productIds.includes(product.id) ? { ...product, isActive: false, variants: product.variants.map((variant) => ({ ...variant, isActive: false })) } : product),
+      },
+    }));
+  }
+
   async function addVariant(input: VariantInput) {
     if (!isDemo) {
       const { addVariant: addLiveVariant } = await import("@/app/(app)/actions");
@@ -241,6 +260,20 @@ export function WorkspaceProvider({ initialSnapshot, children }: { initialSnapsh
     });
   }
 
+  async function deleteOrder(orderId: string) {
+    if (!isDemo) {
+      const { deleteOrder: deleteLiveOrder } = await import("@/app/(app)/actions");
+      await deleteLiveOrder(orderId);
+      router.refresh();
+      return;
+    }
+    const order = snapshot.data.orders.find((item) => item.id === orderId);
+    if (!order) throw new Error("Order not found");
+    const hasStockHistory = snapshot.data.movements.some((movement) => movement.orderNumber === order.orderNumber);
+    if (hasStockHistory || ["confirmed", "ready", "completed"].includes(order.status)) throw new Error("Orders with stock history cannot be deleted. Keep the order and use its status controls instead.");
+    setSnapshot((current) => ({ ...current, data: { ...current.data, orders: current.data.orders.filter((item) => item.id !== orderId) } }));
+  }
+
   async function updatePaymentStatus(orderId: string, status: Order["paymentStatus"]) {
     if (!isDemo) {
       const { updatePaymentStatus: updateLivePaymentStatus } = await import("@/app/(app)/actions");
@@ -264,7 +297,7 @@ export function WorkspaceProvider({ initialSnapshot, children }: { initialSnapsh
     setSnapshot((current) => ({ ...current, data: { ...current.data, businessName, currencyCode, storefrontEnabled, checkoutMethod, whatsappNumber } }));
   }
 
-  return <WorkspaceContext.Provider value={{ snapshot, isDemo, variants, categories, addProduct, updateProduct, deleteProduct, addVariant, recordStock, createOrder, updateOrderStatus, updatePaymentStatus, updateBusiness }}>{children}</WorkspaceContext.Provider>;
+  return <WorkspaceContext.Provider value={{ snapshot, isDemo, variants, categories, addProduct, updateProduct, deleteProduct, archiveProducts, addVariant, recordStock, createOrder, updateOrderStatus, deleteOrder, updatePaymentStatus, updateBusiness }}>{children}</WorkspaceContext.Provider>;
 }
 
 export function useWorkspace() {
