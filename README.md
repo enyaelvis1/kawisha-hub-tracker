@@ -25,7 +25,7 @@ PAYSTACK_SECRET_KEY=
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Apply the migrations in `supabase/migrations/` in filename order to a local Supabase instance or to the owner’s Supabase SQL editor. After an owner creates a private Auth account through an approved setup flow, call `bootstrap_business('Kawisha Hub NG', 'NGN')` from a signed-in setup client, or use a controlled SQL setup process to insert the business and owner membership using that Auth user’s UUID. The owner can then publish the storefront and save the business WhatsApp number from Settings. For live checkout, set `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, and the public site URL only in the server environment; never expose either secret to the client or commit them.
+Apply the migrations in `supabase/migrations/` in filename order to a local Supabase instance or to the owner’s Supabase SQL editor. After an owner creates a private Auth account through an approved setup flow, call `bootstrap_business('Kawisha Hub NG', 'NGN')` from a signed-in setup client, or use a controlled SQL setup process to insert the business and owner membership using that Auth user’s UUID. The owner can then publish the storefront and save the business WhatsApp number from Settings. For live checkout, set `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, and the public site URL only in the server environment; never expose either secret to the client or commit them....
 
 ## Scripts
 
