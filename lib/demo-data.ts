@@ -1,0 +1,238 @@
+import type { Product, WorkspaceData } from "./types";
+
+const now = new Date("2026-09-24T09:00:00+01:00");
+
+const additionalProductTemplates = [
+  { name: "Canvas Crossbody", category: "Bags", imageUrl: "/products/sample-linen-tote.png", variantName: "Olive / Standard", skuPrefix: "DEMO-CROSS", priceCents: 225000, stock: 14, threshold: 6 },
+  { name: "Ribbed Lounge Set", category: "Apparel", imageUrl: "/products/sample-everyday-shirt.png", variantName: "Sand / M", skuPrefix: "DEMO-LOUNGE", priceCents: 385000, stock: 11, threshold: 5 },
+  { name: "Ceramic Catchall", category: "Home", imageUrl: "/products/sample-scented-candle.png", variantName: "Stone / Small", skuPrefix: "DEMO-CATCH", priceCents: 120000, stock: 9, threshold: 4 },
+  { name: "Ribbed Beanie", category: "Apparel", imageUrl: "/products/sample-everyday-shirt.png", variantName: "Olive / One size", skuPrefix: "DEMO-BEANIE", priceCents: 85000, stock: 20, threshold: 8 },
+  { name: "Woven Wallet", category: "Accessories", imageUrl: "/products/sample-linen-tote.png", variantName: "Natural / Standard", skuPrefix: "DEMO-WALLET", priceCents: 140000, stock: 16, threshold: 6 },
+  { name: "Cedar Reed Diffuser", category: "Home", imageUrl: "/products/sample-scented-candle.png", variantName: "Cedar / 100ml", skuPrefix: "DEMO-DIFFUSE", priceCents: 175000, stock: 7, threshold: 4 },
+  { name: "Daily Notes Journal", category: "Stationery", imageUrl: "/products/sample-linen-tote.png", variantName: "Kraft / A5", skuPrefix: "DEMO-JOURNAL", priceCents: 65000, stock: 27, threshold: 10 },
+  { name: "Cotton Cushion", category: "Home", imageUrl: "/products/sample-everyday-shirt.png", variantName: "Cream / 45cm", skuPrefix: "DEMO-CUSHION", priceCents: 155000, stock: 13, threshold: 5 },
+  { name: "Travel Pouch", category: "Bags", imageUrl: "/products/sample-linen-tote.png", variantName: "Sand / Medium", skuPrefix: "DEMO-POUCH", priceCents: 110000, stock: 18, threshold: 7 },
+  { name: "Stoneware Mug", category: "Home", imageUrl: "/products/sample-scented-candle.png", variantName: "Ivory / 350ml", skuPrefix: "DEMO-MUG", priceCents: 95000, stock: 22, threshold: 8 },
+  { name: "Everyday Scarf", category: "Accessories", imageUrl: "/products/sample-everyday-shirt.png", variantName: "Olive / Long", skuPrefix: "DEMO-SCARF", priceCents: 130000, stock: 8, threshold: 5 },
+  { name: "Hand Balm", category: "Wellness", imageUrl: "/products/sample-scented-candle.png", variantName: "Cedar / 50ml", skuPrefix: "DEMO-BALM", priceCents: 70000, stock: 25, threshold: 9 },
+];
+
+const additionalDemoProducts: Product[] = Array.from({ length: 47 }, (_, index) => {
+  const template = additionalProductTemplates[index % additionalProductTemplates.length];
+  const productNumber = index + 4;
+  const collectionNumber = String(Math.floor(index / additionalProductTemplates.length) + 1).padStart(2, "0");
+  const productId = `demo-product-${productNumber}`;
+  const variantId = `demo-variant-${productNumber + 1}`;
+  const name = `Sample ${template.name} ${collectionNumber}`;
+  const stock = Math.max(2, template.stock - (index % 6));
+
+  return {
+    id: productId,
+    name,
+    description: "Fictional sample product for demo mode.",
+    category: template.category,
+    imageUrl: template.imageUrl,
+    isActive: true,
+    variants: [{
+      id: variantId,
+      productId,
+      productName: name,
+      category: template.category,
+      variantName: template.variantName,
+      sku: `${template.skuPrefix}-${String(productNumber).padStart(2, "0")}`,
+      priceCents: template.priceCents,
+      stock,
+      lowStockThreshold: template.threshold,
+      isActive: true,
+    }],
+  };
+});
+
+export const demoData: WorkspaceData = {
+  businessName: "Kawisha Hub NG",
+  currencyCode: "NGN",
+  storefrontEnabled: true,
+  products: [
+    {
+      id: "demo-product-1",
+      name: "Sample Linen Tote",
+      description: "Fictional sample product for demo mode.",
+      category: "Bags",
+      imageUrl: "/products/sample-linen-tote.png",
+      isActive: true,
+      variants: [
+        {
+          id: "demo-variant-1",
+          productId: "demo-product-1",
+          productName: "Sample Linen Tote",
+          category: "Bags",
+          variantName: "Natural / Standard",
+          sku: "DEMO-TOTE-NAT",
+          priceCents: 185000,
+          stock: 18,
+          lowStockThreshold: 8,
+          isActive: true,
+        },
+        {
+          id: "demo-variant-2",
+          productId: "demo-product-1",
+          productName: "Sample Linen Tote",
+          category: "Bags",
+          variantName: "Black / Standard",
+          sku: "DEMO-TOTE-BLK",
+          priceCents: 195000,
+          stock: 6,
+          lowStockThreshold: 8,
+          isActive: true,
+        },
+      ],
+    },
+    {
+      id: "demo-product-2",
+      name: "Sample Everyday Shirt",
+      description: "Fictional sample product for demo mode.",
+      category: "Apparel",
+      imageUrl: "/products/sample-everyday-shirt.png",
+      isActive: true,
+      variants: [
+        {
+          id: "demo-variant-3",
+          productId: "demo-product-2",
+          productName: "Sample Everyday Shirt",
+          category: "Apparel",
+          variantName: "Sand / M",
+          sku: "DEMO-SHIRT-SND-M",
+          priceCents: 240000,
+          stock: 24,
+          lowStockThreshold: 10,
+          isActive: true,
+        },
+      ],
+    },
+    {
+      id: "demo-product-3",
+      name: "Sample Scented Candle",
+      description: "Fictional sample product for demo mode.",
+      category: "Home",
+      imageUrl: "/products/sample-scented-candle.png",
+      isActive: true,
+      variants: [
+        {
+          id: "demo-variant-4",
+          productId: "demo-product-3",
+          productName: "Sample Scented Candle",
+          category: "Home",
+          variantName: "Cedar / 200g",
+          sku: "DEMO-CANDLE-CED",
+          priceCents: 95000,
+          stock: 3,
+          lowStockThreshold: 5,
+          isActive: true,
+        },
+      ],
+    },
+    ...additionalDemoProducts,
+  ],
+  orders: [
+    {
+      id: "demo-order-1",
+      orderNumber: "KH-DEMO-014",
+      customerName: "Sample customer",
+      customerPhone: "",
+      source: "whatsapp",
+      status: "confirmed",
+      paymentStatus: "paid",
+      notes: "Fictional demo order. Not imported from WhatsApp.",
+      createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 4).toISOString(),
+      updatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+      lines: [
+        {
+          id: "demo-line-1",
+          variantId: "demo-variant-3",
+          productName: "Sample Everyday Shirt",
+          variantName: "Sand / M",
+          sku: "DEMO-SHIRT-SND-M",
+          quantity: 1,
+          unitPriceCents: 240000,
+        },
+      ],
+    },
+    {
+      id: "demo-order-2",
+      orderNumber: "KH-DEMO-013",
+      customerName: "Demo walk-in",
+      source: "in_person",
+      status: "new",
+      paymentStatus: "partial",
+      notes: "Fictional demo order for interface review.",
+      createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 26).toISOString(),
+      updatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 26).toISOString(),
+      lines: [
+        {
+          id: "demo-line-2",
+          variantId: "demo-variant-2",
+          productName: "Sample Linen Tote",
+          variantName: "Black / Standard",
+          sku: "DEMO-TOTE-BLK",
+          quantity: 1,
+          unitPriceCents: 195000,
+        },
+      ],
+    },
+    {
+      id: "demo-order-3",
+      orderNumber: "KH-DEMO-012",
+      customerName: "Demo Instagram lead",
+      source: "instagram",
+      status: "ready",
+      paymentStatus: "unpaid",
+      notes: "Fictional demo order.",
+      createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 48).toISOString(),
+      updatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 8).toISOString(),
+      lines: [
+        {
+          id: "demo-line-3",
+          variantId: "demo-variant-4",
+          productName: "Sample Scented Candle",
+          variantName: "Cedar / 200g",
+          sku: "DEMO-CANDLE-CED",
+          quantity: 2,
+          unitPriceCents: 95000,
+        },
+      ],
+    },
+  ],
+  movements: [
+    {
+      id: "demo-movement-1",
+      variantId: "demo-variant-1",
+      productName: "Sample Linen Tote",
+      variantName: "Natural / Standard",
+      movementType: "restock",
+      quantityDelta: 12,
+      reason: "Fictional demo restock",
+      createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 3).toISOString(),
+    },
+    {
+      id: "demo-movement-2",
+      variantId: "demo-variant-3",
+      productName: "Sample Everyday Shirt",
+      variantName: "Sand / M",
+      movementType: "order_confirmed",
+      quantityDelta: -1,
+      reason: "Confirmed demo order KH-DEMO-014",
+      orderNumber: "KH-DEMO-014",
+      createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+    },
+    {
+      id: "demo-movement-3",
+      variantId: "demo-variant-4",
+      productName: "Sample Scented Candle",
+      variantName: "Cedar / 200g",
+      movementType: "manual_correction",
+      quantityDelta: -1,
+      reason: "Fictional demo correction",
+      createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 22).toISOString(),
+    },
+  ],
+};
