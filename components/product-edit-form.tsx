@@ -14,13 +14,14 @@ import { uploadProductImage } from "@/app/(app)/actions";
 
 export function ProductEditForm({ productId }: { productId: string }) {
   const router = useRouter();
-  const { snapshot, updateProduct, isDemo } = useWorkspace();
+  const { snapshot, updateProduct, deleteProduct, isDemo } = useWorkspace();
   const product = snapshot.data.products.find((item) => item.id === productId);
   const [variantId, setVariantId] = useState(product?.variants[0]?.id ?? "");
   const variant = product?.variants.find((item) => item.id === variantId) ?? product?.variants[0];
   const [form, setForm] = useState({ name: product?.name ?? "", category: product?.category ?? "", description: product?.description ?? "", variantName: variant?.variantName ?? "", sku: variant?.sku ?? "", price: variant ? centsToDecimal(variant.priceCents) : "", threshold: String(variant?.lowStockThreshold ?? 0), isActive: product?.isActive ?? true });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -57,6 +58,20 @@ export function ProductEditForm({ productId }: { productId: string }) {
     }
   }
 
+  async function removeProduct() {
+    if (!window.confirm(`Delete ${savedProduct.name}? Products with stock or order history can only be archived.`)) return;
+    setError("");
+    setDeleting(true);
+    try {
+      await deleteProduct(savedProduct.id);
+      router.push("/products");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not delete product.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <form onSubmit={submit} className="space-y-7">
       <div className="rounded-lg border bg-muted/40 p-4"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Current stock</p><p className="mt-2 text-2xl font-semibold tabular-nums">{variant.stock} <span className="text-sm font-normal text-muted-foreground">units</span></p><p className="mt-1 text-xs text-muted-foreground">Use Stock control to change quantity so every change has a movement record.</p></div>
@@ -73,7 +88,7 @@ export function ProductEditForm({ productId }: { productId: string }) {
       </div>
       <label className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm"><Checkbox checked={form.isActive} onCheckedChange={(checked) => set("isActive", checked === true)} /><span><span className="font-semibold">Active product</span><span className="mt-1 block text-xs text-muted-foreground">Uncheck to archive this product from normal operations.</span></span></label>
       {error ? <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p> : null}
-      <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:justify-end"><Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button><Button disabled={saving} type="submit">{saving ? "Saving…" : "Save changes"}</Button></div>
+      <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:items-center sm:justify-between"><Button disabled={saving || deleting} onClick={removeProduct} type="button" variant="destructive">{deleting ? "Deleting…" : "Delete product"}</Button><div className="flex flex-col-reverse gap-2 sm:flex-row"><Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button><Button disabled={saving || deleting} type="submit">{saving ? "Saving…" : "Save changes"}</Button></div></div>
     </form>
   );
 }

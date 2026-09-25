@@ -30,12 +30,11 @@ Copy `.env.example` to `.env.local` and add the owner-managed Supabase values:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-NEXT_PUBLIC_WHATSAPP_NUMBER=2348012345678
 ```
 
 Apply the migrations in `supabase/migrations/` in filename order. Create or invite the owner through Supabase Auth, then run the documented `bootstrap_business('Kawisha Hub NG', 'NGN')` setup function from an approved signed-in setup flow.
 
-Product photos use Supabase Storage. WhatsApp order requests additionally require the public business number in international digits-only format. Public checkout additionally requires server-only `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, and `NEXT_PUBLIC_SITE_URL`. Never expose or commit either secret.
+Product photos use Supabase Storage. Set the business WhatsApp number from the private `/settings` page in international format before enabling WhatsApp checkout. Public checkout additionally requires server-only `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, and `NEXT_PUBLIC_SITE_URL`. Never expose or commit either secret.
 
 ## Operating notes
 

@@ -23,10 +23,9 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 PAYSTACK_SECRET_KEY=
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_WHATSAPP_NUMBER=
 ```
 
-Apply the migrations in `supabase/migrations/` in filename order to a local Supabase instance or to the owner’s Supabase SQL editor. This task does not create or connect to a remote project. After an owner creates a private Auth account through an approved setup flow, call `bootstrap_business('Kawisha Hub NG', 'NGN')` from a signed-in setup client, or use a controlled SQL setup process to insert the business and owner membership using that Auth user’s UUID. The owner can then publish the storefront from Settings. For live checkout, set `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, and the public site URL only in the server environment; never expose either secret to the client or commit them.
+Apply the migrations in `supabase/migrations/` in filename order to a local Supabase instance or to the owner’s Supabase SQL editor. After an owner creates a private Auth account through an approved setup flow, call `bootstrap_business('Kawisha Hub NG', 'NGN')` from a signed-in setup client, or use a controlled SQL setup process to insert the business and owner membership using that Auth user’s UUID. The owner can then publish the storefront and save the business WhatsApp number from Settings. For live checkout, set `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, and the public site URL only in the server environment; never expose either secret to the client or commit them.
 
 ## Scripts
 
@@ -40,7 +39,7 @@ Apply the migrations in `supabase/migrations/` in filename order to a local Supa
 
 Completed in this milestone: private login route, demo mode with a 50-product sample catalogue, public storefront, owner-controlled storefront publishing, generated demo product photography, live product photo uploads with Storage RLS, product and first-variant creation, search/category filtering, browser cart, WhatsApp order request handoff with a private owner inbox, customer sign-up/login and order history, Paystack initialization/verification/webhook reconciliation, stock dashboard and movement history, manual customer orders, online order ingestion, order filters/detail/status/payment updates, atomic confirmation stock deduction, atomic cancellation stock restoration, configurable business name/currency, RLS migrations, and documentation.
 
-Deferred: staff invitations UI, complex roles, branches/warehouses, supplier purchasing, external channel imports, transactional notifications, analytics beyond basic summaries, fulfilment/shipping integrations, and deployment. Paystack checkout is intentionally disabled until the owner supplies live credentials and completes payment-provider configuration. WhatsApp ordering still needs a live business number and owner-approved end-to-end test.
+Deferred: staff invitations UI, complex roles, branches/warehouses, supplier purchasing, external channel imports, transactional notifications, analytics beyond basic summaries, fulfilment/shipping integrations, and deployment operations. Paystack checkout is intentionally disabled until the owner supplies live credentials and completes payment-provider configuration. WhatsApp ordering still needs an owner-entered business number and owner-approved end-to-end test.
 
 Production Supabase and Vercel accounts, billing, domains, and credentials must be owned and supplied by the business owner. They are intentionally not created or committed here.
 

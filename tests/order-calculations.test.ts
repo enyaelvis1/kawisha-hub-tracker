@@ -74,6 +74,12 @@ describe("database guardrails", () => {
     assert.match(sql, /checkout_method in \('paystack', 'whatsapp'\)/);
   });
 
+  it("declares an owner-managed WhatsApp number without exposing a public destination", () => {
+    const sql = readFileSync(new URL("../supabase/migrations/202609250006_business_whatsapp_number.sql", import.meta.url), "utf8");
+    assert.match(sql, /add column if not exists whatsapp_number text not null default ''/);
+    assert.match(sql, /whatsapp_number ~ '\^\[0-9\]\*\$'/);
+  });
+
   it("builds a pre-filled WhatsApp order message", () => {
     const message = buildWhatsAppMessage({
       businessName: "Kawisha Hub NG",

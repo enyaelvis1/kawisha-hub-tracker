@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
 import type { CheckoutMethod, OrderSource, OrderStatus, PaymentStatus, MovementType, WhatsAppRequestStatus } from "@/lib/types";
 
 type ProductInput = {
@@ -112,6 +113,32 @@ export async function updateProduct(input: ProductEditInput) {
   revalidatePath("/products");
 }
 
+export async function deleteProduct(productId: string) {
+  const { supabase, businessId } = await getBusinessContext();
+  const productResult = await supabase.from("products").select("id,image_path,product_variants(id)").eq("id", productId).eq("business_id", businessId).maybeSingle();
+  if (productResult.error) throw productResult.error;
+  if (!productResult.data) throw new Error("Product not found");
+
+  const variants = Array.isArray(productResult.data.product_variants) ? productResult.data.product_variants : [];
+  const variantIds = variants.map((variant) => variant.id).filter((id): id is string => typeof id === "string");
+  if (variantIds.length) {
+    const [orderLines, movements] = await Promise.all([
+      supabase.from("order_lines").select("id").eq("business_id", businessId).in("variant_id", variantIds).limit(1),
+      supabase.from("stock_movements").select("id").eq("business_id", businessId).in("variant_id", variantIds).limit(1),
+    ]);
+    if (orderLines.error) throw orderLines.error;
+    if (movements.error) throw movements.error;
+    if (orderLines.data?.length || movements.data?.length) throw new Error("This product has order or stock history. Uncheck Active product to archive it instead.");
+  }
+
+  const deleteResult = await supabase.from("products").delete().eq("id", productId).eq("business_id", businessId);
+  if (deleteResult.error) throw deleteResult.error;
+  if (productResult.data.image_path) await supabase.storage.from("product-images").remove([productResult.data.image_path]);
+  revalidatePath("/dashboard");
+  revalidatePath("/products");
+  revalidatePath("/store");
+}
+
 export async function addVariant(input: VariantInput) {
   const { supabase, businessId } = await getBusinessContext();
   requireWholeNumber(input.priceCents, "Price");
@@ -191,11 +218,13 @@ export async function updateWhatsAppRequestStatus(requestId: string, status: Wha
   revalidatePath("/dashboard");
 }
 
-export async function updateBusinessSettings(input: { businessName: string; currencyCode: string; storefrontEnabled: boolean; checkoutMethod: CheckoutMethod }) {
+export async function updateBusinessSettings(input: { businessName: string; currencyCode: string; storefrontEnabled: boolean; checkoutMethod: CheckoutMethod; whatsappNumber: string }) {
   const { supabase, businessId } = await getBusinessContext();
   if (!input.businessName.trim() || !/^[A-Z]{3}$/.test(input.currencyCode)) throw new Error("Business name and a three-letter currency code are required");
   if (input.checkoutMethod !== "paystack" && input.checkoutMethod !== "whatsapp") throw new Error("Choose a valid checkout method");
-  const { error } = await supabase.from("businesses").update({ name: input.businessName.trim(), currency_code: input.currencyCode, storefront_enabled: input.storefrontEnabled, checkout_method: input.checkoutMethod }).eq("id", businessId);
+  const whatsappNumber = normalizeWhatsAppNumber(input.whatsappNumber);
+  if (input.checkoutMethod === "whatsapp" && (whatsappNumber.length < 7 || whatsappNumber.length > 32)) throw new Error("Add a valid WhatsApp number in international format before enabling WhatsApp checkout");
+  const { error } = await supabase.from("businesses").update({ name: input.businessName.trim(), currency_code: input.currencyCode, storefront_enabled: input.storefrontEnabled, checkout_method: input.checkoutMethod, whatsapp_number: whatsappNumber }).eq("id", businessId);
   if (error) throw error;
   revalidatePath("/dashboard");
   revalidatePath("/settings");

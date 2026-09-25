@@ -21,9 +21,6 @@ function textValue(value: unknown) {
 export async function POST(request: Request) {
   if (!hasEnvVars) return NextResponse.json({ error: "WhatsApp ordering is available after live Supabase setup." }, { status: 400 });
 
-  const whatsappNumber = normalizeWhatsAppNumber(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "");
-  if (!whatsappNumber) return NextResponse.json({ error: "WhatsApp ordering is not configured yet. Add the business WhatsApp number first." }, { status: 503 });
-
   let body: WhatsAppOrderBody;
   try {
     body = await request.json() as WhatsAppOrderBody;
@@ -53,13 +50,15 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: business, error: businessError } = await supabase
     .from("businesses")
-    .select("name,currency_code,checkout_method")
+    .select("name,currency_code,checkout_method,whatsapp_number")
     .eq("id", businessId)
     .eq("storefront_enabled", true)
     .maybeSingle();
   if (businessError) return NextResponse.json({ error: "Could not load the storefront." }, { status: 500 });
   if (!business) return NextResponse.json({ error: "This storefront is not available." }, { status: 400 });
   if (business.checkout_method !== "whatsapp") return NextResponse.json({ error: "WhatsApp checkout is not enabled for this store." }, { status: 409 });
+  const whatsappNumber = normalizeWhatsAppNumber(business.whatsapp_number ?? "");
+  if (!whatsappNumber) return NextResponse.json({ error: "WhatsApp ordering is not configured yet. Ask the owner to add a business WhatsApp number in Settings." }, { status: 503 });
 
   const { data: requestData, error: requestError } = await supabase.rpc("create_whatsapp_order_request", {
     p_business_id: businessId,

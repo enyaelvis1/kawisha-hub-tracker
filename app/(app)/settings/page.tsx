@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [currencyCode, setCurrencyCode] = useState(snapshot.data.currencyCode);
   const [storefrontEnabled, setStorefrontEnabled] = useState(snapshot.data.storefrontEnabled);
   const [checkoutMethod, setCheckoutMethod] = useState<CheckoutMethod>(snapshot.data.checkoutMethod);
+  const [whatsappNumber, setWhatsappNumber] = useState(snapshot.data.whatsappNumber);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -24,7 +25,8 @@ export default function SettingsPage() {
     setCurrencyCode(snapshot.data.currencyCode);
     setStorefrontEnabled(snapshot.data.storefrontEnabled);
     setCheckoutMethod(snapshot.data.checkoutMethod);
-  }, [snapshot.data.businessName, snapshot.data.currencyCode, snapshot.data.storefrontEnabled, snapshot.data.checkoutMethod]);
+    setWhatsappNumber(snapshot.data.whatsappNumber);
+  }, [snapshot.data.businessName, snapshot.data.currencyCode, snapshot.data.storefrontEnabled, snapshot.data.checkoutMethod, snapshot.data.whatsappNumber]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -32,7 +34,7 @@ export default function SettingsPage() {
     setMessage("");
     setSaving(true);
     try {
-      await updateBusiness(businessName, currencyCode.toUpperCase(), storefrontEnabled, checkoutMethod);
+      await updateBusiness(businessName, currencyCode.toUpperCase(), storefrontEnabled, checkoutMethod, whatsappNumber);
       setMessage("Settings saved.");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not save settings.");
@@ -52,6 +54,7 @@ export default function SettingsPage() {
             <label className={formLabelClass}>Business name<input className={controlClass} value={businessName} onChange={(event) => setBusinessName(event.target.value)} required /></label>
             <label className={formLabelClass}>Currency code<input className={controlClass} maxLength={3} value={currencyCode} onChange={(event) => setCurrencyCode(event.target.value.toUpperCase())} required /><span className="mt-1 block text-xs font-normal text-muted-foreground">NGN is the default. Enter a three-letter ISO code if the business later changes currency.</span></label>
             <label className={formLabelClass}>Customer checkout method<select className={controlClass} disabled={isDemo} onChange={(event) => setCheckoutMethod(event.target.value as CheckoutMethod)} value={checkoutMethod}><option value="paystack">Paystack — online card/bank payment</option><option value="whatsapp">WhatsApp — send the order to the owner</option></select><span className="mt-1 block text-xs font-normal text-muted-foreground">Customers see only the selected option at checkout. WhatsApp requests appear in the private inbox for follow-up.</span></label>
+            <label className={formLabelClass}>Business WhatsApp number <span className="font-normal text-muted-foreground">(international format)</span><input className={controlClass} disabled={isDemo} inputMode="tel" onChange={(event) => setWhatsappNumber(event.target.value)} placeholder="2348012345678" value={whatsappNumber} /><span className="mt-1 block text-xs font-normal text-muted-foreground">Used for WhatsApp checkout. Include the country code; spaces and a leading + are cleaned when saved.</span></label>
             <label className="flex items-start gap-3 rounded-lg border bg-muted/20 p-3 text-sm">
               <input checked={storefrontEnabled} className="mt-0.5 size-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60" disabled={isDemo} onChange={(event) => setStorefrontEnabled(event.target.checked)} type="checkbox" />
               <span>

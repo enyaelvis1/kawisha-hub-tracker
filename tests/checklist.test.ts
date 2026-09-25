@@ -8,7 +8,7 @@ test("parses only the seven implementation sections", () => {
   const items = checklist.sections.flatMap((section) => section.items);
 
   assert.equal(checklist.sections.length, 7);
-  assert.equal(items.length, 55);
+  assert.equal(items.length, 56);
   assert.equal(checklist.sections.some((section) => section.title === "Status legend"), false);
   assert.equal(items.some((item) => item.title === "Not started"), false);
 });

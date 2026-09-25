@@ -43,12 +43,13 @@ type WorkspaceContextValue = {
   categories: string[];
   addProduct: (input: ProductInput) => Promise<string>;
   updateProduct: (input: ProductEditInput) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   addVariant: (input: VariantInput) => Promise<void>;
   recordStock: (input: StockInput) => Promise<void>;
   createOrder: (input: OrderInput) => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order["status"]) => Promise<void>;
   updatePaymentStatus: (orderId: string, status: Order["paymentStatus"]) => Promise<void>;
-  updateBusiness: (businessName: string, currencyCode: string, storefrontEnabled: boolean, checkoutMethod: CheckoutMethod) => Promise<void>;
+  updateBusiness: (businessName: string, currencyCode: string, storefrontEnabled: boolean, checkoutMethod: CheckoutMethod, whatsappNumber: string) => Promise<void>;
 };
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -151,6 +152,16 @@ export function WorkspaceProvider({ initialSnapshot, children }: { initialSnapsh
     }));
   }
 
+  async function deleteProduct(productId: string) {
+    if (!isDemo) {
+      const { deleteProduct: deleteLiveProduct } = await import("@/app/(app)/actions");
+      await deleteLiveProduct(productId);
+      router.refresh();
+      return;
+    }
+    setSnapshot((current) => ({ ...current, data: { ...current.data, products: current.data.products.filter((product) => product.id !== productId) } }));
+  }
+
   async function addVariant(input: VariantInput) {
     if (!isDemo) {
       const { addVariant: addLiveVariant } = await import("@/app/(app)/actions");
@@ -243,17 +254,17 @@ export function WorkspaceProvider({ initialSnapshot, children }: { initialSnapsh
     }));
   }
 
-  async function updateBusiness(businessName: string, currencyCode: string, storefrontEnabled: boolean, checkoutMethod: CheckoutMethod) {
+  async function updateBusiness(businessName: string, currencyCode: string, storefrontEnabled: boolean, checkoutMethod: CheckoutMethod, whatsappNumber: string) {
     if (!isDemo) {
       const { updateBusinessSettings } = await import("@/app/(app)/actions");
-      await updateBusinessSettings({ businessName, currencyCode, storefrontEnabled, checkoutMethod });
+      await updateBusinessSettings({ businessName, currencyCode, storefrontEnabled, checkoutMethod, whatsappNumber });
       router.refresh();
       return;
     }
-    setSnapshot((current) => ({ ...current, data: { ...current.data, businessName, currencyCode, storefrontEnabled, checkoutMethod } }));
+    setSnapshot((current) => ({ ...current, data: { ...current.data, businessName, currencyCode, storefrontEnabled, checkoutMethod, whatsappNumber } }));
   }
 
-  return <WorkspaceContext.Provider value={{ snapshot, isDemo, variants, categories, addProduct, updateProduct, addVariant, recordStock, createOrder, updateOrderStatus, updatePaymentStatus, updateBusiness }}>{children}</WorkspaceContext.Provider>;
+  return <WorkspaceContext.Provider value={{ snapshot, isDemo, variants, categories, addProduct, updateProduct, deleteProduct, addVariant, recordStock, createOrder, updateOrderStatus, updatePaymentStatus, updateBusiness }}>{children}</WorkspaceContext.Provider>;
 }
 
 export function useWorkspace() {

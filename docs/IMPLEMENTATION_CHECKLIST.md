@@ -65,7 +65,8 @@ Items are only complete when the implementation and its relevant validation are 
 - [x] Provide customer sign-up, login, and order history for public-store customers
 - [x] Provide a browser cart and checkout review flow
 - [x] Let the owner choose Paystack or WhatsApp as the single public checkout method
-- [~] Provide a WhatsApp cart handoff and private owner inbox; live WhatsApp number configuration and end-to-end testing remain
+- [x] Let the owner save the business WhatsApp number from Settings
+- [~] Provide a WhatsApp cart handoff and private owner inbox; live number entry and end-to-end testing remain
 - [x] Validate order quantities and stock before confirmation
 - [~] Verify live Paystack initialization, callback, webhook, and reconciliation with owner credentials
 

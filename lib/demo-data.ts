@@ -53,6 +53,7 @@ export const demoData: WorkspaceData = {
   currencyCode: "NGN",
   storefrontEnabled: true,
   checkoutMethod: "paystack",
+  whatsappNumber: "",
   products: [
     {
       id: "demo-product-1",

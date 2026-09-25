@@ -47,7 +47,7 @@ export async function getWorkspaceSnapshot(): Promise<WorkspaceSnapshot> {
 
   const { data: membership, error: membershipError } = await supabase
     .from("business_members")
-    .select("business_id, businesses(id, name, currency_code, storefront_enabled, checkout_method)")
+    .select("business_id, businesses(id, name, currency_code, storefront_enabled, checkout_method, whatsapp_number)")
     .eq("user_id", userData.user.id)
     .limit(1)
     .maybeSingle();
@@ -55,7 +55,7 @@ export async function getWorkspaceSnapshot(): Promise<WorkspaceSnapshot> {
 
   const business = Array.isArray(membership?.businesses) ? membership?.businesses[0] : membership?.businesses;
   if (!membership || !business) {
-    return { mode: "live", hasMembership: false, data: { ...demoData, businessName: "Kawisha Hub NG", storefrontEnabled: false, products: [], orders: [], movements: [], whatsappRequests: [], whatsappInboxAvailable: false } };
+    return { mode: "live", hasMembership: false, data: { ...demoData, businessName: "Kawisha Hub NG", storefrontEnabled: false, products: [], orders: [], movements: [], whatsappRequests: [], whatsappInboxAvailable: false, whatsappNumber: "" } };
   }
 
   const [{ data: rawProducts, error: productError }, { data: rawOrders, error: orderError }, { data: rawMovements, error: movementError }, { data: rawWhatsAppRequests, error: whatsappRequestError }] = await Promise.all([
@@ -128,7 +128,7 @@ export async function getWorkspaceSnapshot(): Promise<WorkspaceSnapshot> {
     lines: parseWhatsAppLines(request.line_items),
   }));
 
-  return { mode: "live", hasMembership: true, data: { businessName: business.name, currencyCode: business.currency_code, storefrontEnabled: business.storefront_enabled, checkoutMethod: business.checkout_method, products, orders, movements, whatsappRequests, whatsappInboxAvailable } };
+  return { mode: "live", hasMembership: true, data: { businessName: business.name, currencyCode: business.currency_code, storefrontEnabled: business.storefront_enabled, checkoutMethod: business.checkout_method, whatsappNumber: business.whatsapp_number ?? "", products, orders, movements, whatsappRequests, whatsappInboxAvailable } };
 }
 
 export async function getPublicStoreSnapshot(): Promise<PublicStoreSnapshot> {
@@ -141,7 +141,7 @@ export async function getPublicStoreSnapshot(): Promise<PublicStoreSnapshot> {
         businessId: "demo-business",
         isPublished: true,
         checkoutMethod: demoData.checkoutMethod,
-        whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "",
+        whatsappNumber: demoData.whatsappNumber,
         products: demoData.products.filter((product) => product.isActive),
       },
     };
@@ -150,7 +150,7 @@ export async function getPublicStoreSnapshot(): Promise<PublicStoreSnapshot> {
   const supabase = await createClient();
   const { data: business, error: businessError } = await supabase
     .from("businesses")
-    .select("id,name,currency_code,storefront_enabled,checkout_method")
+    .select("id,name,currency_code,storefront_enabled,checkout_method,whatsapp_number")
     .eq("storefront_enabled", true)
     .limit(1)
     .maybeSingle();
@@ -165,7 +165,7 @@ export async function getPublicStoreSnapshot(): Promise<PublicStoreSnapshot> {
         currencyCode: "NGN",
         isPublished: false,
         checkoutMethod: "paystack",
-        whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "",
+        whatsappNumber: "",
         products: [],
       },
     };
@@ -207,7 +207,7 @@ export async function getPublicStoreSnapshot(): Promise<PublicStoreSnapshot> {
       currencyCode: business.currency_code,
       isPublished: true,
       checkoutMethod: business.checkout_method,
-      whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "",
+      whatsappNumber: business.whatsapp_number ?? "",
       products,
     },
   };

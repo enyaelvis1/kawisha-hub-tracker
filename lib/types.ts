@@ -94,6 +94,7 @@ export type WorkspaceData = {
   currencyCode: string;
   storefrontEnabled: boolean;
   checkoutMethod: CheckoutMethod;
+  whatsappNumber: string;
   products: Product[];
   orders: Order[];
   movements: StockMovement[];
