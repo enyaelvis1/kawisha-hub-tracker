@@ -52,6 +52,7 @@ export const demoData: WorkspaceData = {
   businessName: "Kawisha Hub NG",
   currencyCode: "NGN",
   storefrontEnabled: true,
+  checkoutMethod: "paystack",
   products: [
     {
       id: "demo-product-1",
@@ -202,6 +203,32 @@ export const demoData: WorkspaceData = {
       ],
     },
   ],
+  whatsappRequests: [
+    {
+      id: "demo-whatsapp-request-1",
+      requestNumber: "KH-WA-DEMO-001",
+      customerName: "Demo WhatsApp shopper",
+      customerPhone: "+234 800 000 0000",
+      customerEmail: "",
+      deliveryAddress: "Fictional demo address",
+      note: "Fictional demo request. No WhatsApp message was sent.",
+      status: "new",
+      totalCents: 240000,
+      createdAt: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
+      updatedAt: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
+      lines: [
+        {
+          variantId: "demo-variant-3",
+          productName: "Sample Everyday Shirt",
+          variantName: "Sand / M",
+          sku: "DEMO-SHIRT-SND-M",
+          quantity: 1,
+          unitPriceCents: 240000,
+        },
+      ],
+    },
+  ],
+  whatsappInboxAvailable: true,
   movements: [
     {
       id: "demo-movement-1",

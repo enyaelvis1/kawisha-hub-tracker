@@ -8,7 +8,7 @@ Every tenant-owned row carries `business_id`. Products reference categories and 
 
 ## RLS policies
 
-RLS is enabled on `businesses`, `business_members`, `categories`, `products`, `product_variants`, `orders`, `order_lines`, and `stock_movements`.
+RLS is enabled on `businesses`, `business_members`, `categories`, `products`, `product_variants`, `orders`, `order_lines`, `stock_movements`, and `whatsapp_order_requests`.
 
 - A signed-in user can select a business only if they are a member.
 - Only an owner can update business name and currency settings.
@@ -18,12 +18,14 @@ RLS is enabled on `businesses`, `business_members`, `categories`, `products`, `p
 - Composite foreign keys and `with check` policies protect inserts and updates from cross-business references.
 - Product images use a public read bucket, but uploads and deletes are restricted to authenticated members whose first storage path segment is their business ID. The app validates image type and size before upload.
 - Public orders require an authenticated customer account. A security-definer function validates the published business, active products, variant quantities, customer details, and business scope before inserting order lines.
+- WhatsApp order requests are created through a public security-definer function that validates the published business, active products, current prices, quantities, and contact fields before saving a business-scoped request. Public users cannot read the inbox; only authenticated business members can select or update it. Requests do not reserve stock or mark payment as complete.
 - Paystack initialization and verification run on the server. `PAYSTACK_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are server-only secrets and must never be exposed in client code or committed to source control. Paystack webhook requests are accepted only after HMAC SHA-512 signature verification.
+- The owner-controlled `businesses.checkout_method` setting defaults to `paystack` and is constrained to `paystack` or `whatsapp`. Public checkout APIs verify that the requested path matches this setting before creating a request or payment.
 - The service-role key is used only by the payment webhook/callback reconciliation path; it is not exposed to the workspace or customer browser.
 
 The migration intentionally avoids public registration. `bootstrap_business` is an authenticated, security-definer setup function that creates one business and owner membership for a user who does not already belong to a business. The business owner should control how the initial Auth account is created/invited and when this function is run.
 
-The public storefront migration does not grant anonymous writes or expose inventory history. It is an opt-in catalog and checkout surface; publishing is controlled from the authenticated settings screen. Customer order history is scoped to the customer Auth user, while workspace order visibility remains business-member scoped.
+The public storefront migration does not grant anonymous writes or expose inventory history. The WhatsApp migration grants only execution of the narrowly validated request function to public roles; it does not grant anonymous table reads or updates. Publishing is controlled from the authenticated settings screen. Customer order history is scoped to the customer Auth user, while workspace order and inbox visibility remains business-member scoped.
 
 ## Stock invariants
 

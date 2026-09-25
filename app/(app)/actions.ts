@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { OrderSource, OrderStatus, PaymentStatus, MovementType } from "@/lib/types";
+import type { CheckoutMethod, OrderSource, OrderStatus, PaymentStatus, MovementType, WhatsAppRequestStatus } from "@/lib/types";
 
 type ProductInput = {
   name: string;
@@ -178,10 +178,24 @@ export async function updatePaymentStatus(orderId: string, status: PaymentStatus
   revalidatePath("/orders");
 }
 
-export async function updateBusinessSettings(input: { businessName: string; currencyCode: string; storefrontEnabled: boolean }) {
+export async function updateWhatsAppRequestStatus(requestId: string, status: WhatsAppRequestStatus) {
+  const { supabase, businessId } = await getBusinessContext();
+  if (!["new", "contacted", "converted", "closed"].includes(status)) throw new Error("Invalid WhatsApp request status");
+  const { error } = await supabase
+    .from("whatsapp_order_requests")
+    .update({ status })
+    .eq("id", requestId)
+    .eq("business_id", businessId);
+  if (error) throw error;
+  revalidatePath("/inbox");
+  revalidatePath("/dashboard");
+}
+
+export async function updateBusinessSettings(input: { businessName: string; currencyCode: string; storefrontEnabled: boolean; checkoutMethod: CheckoutMethod }) {
   const { supabase, businessId } = await getBusinessContext();
   if (!input.businessName.trim() || !/^[A-Z]{3}$/.test(input.currencyCode)) throw new Error("Business name and a three-letter currency code are required");
-  const { error } = await supabase.from("businesses").update({ name: input.businessName.trim(), currency_code: input.currencyCode, storefront_enabled: input.storefrontEnabled }).eq("id", businessId);
+  if (input.checkoutMethod !== "paystack" && input.checkoutMethod !== "whatsapp") throw new Error("Choose a valid checkout method");
+  const { error } = await supabase.from("businesses").update({ name: input.businessName.trim(), currency_code: input.currencyCode, storefront_enabled: input.storefrontEnabled, checkout_method: input.checkoutMethod }).eq("id", businessId);
   if (error) throw error;
   revalidatePath("/dashboard");
   revalidatePath("/settings");

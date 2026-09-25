@@ -64,6 +64,8 @@ Items are only complete when the implementation and its relevant validation are 
 - [x] Show order details and totals using the captured line-item prices
 - [x] Provide customer sign-up, login, and order history for public-store customers
 - [x] Provide a browser cart and checkout review flow
+- [x] Let the owner choose Paystack or WhatsApp as the single public checkout method
+- [~] Provide a WhatsApp cart handoff and private owner inbox; live WhatsApp number configuration and end-to-end testing remain
 - [x] Validate order quantities and stock before confirmation
 - [~] Verify live Paystack initialization, callback, webhook, and reconciliation with owner credentials
 
@@ -81,7 +83,7 @@ Items are only complete when the implementation and its relevant validation are 
 
 - [ ] Staff invitation and advanced role-management screens
 - [ ] Multiple branches, warehouses, and supplier purchasing
-- [ ] External WhatsApp, Instagram, marketplace, or POS imports
+- [ ] External WhatsApp, Instagram, marketplace, or POS imports beyond the public-store handoff
 - [ ] Transactional notifications and messaging integrations
 - [ ] Advanced analytics, campaign reporting, and customer segmentation
 - [ ] Shipping and fulfilment-provider integrations

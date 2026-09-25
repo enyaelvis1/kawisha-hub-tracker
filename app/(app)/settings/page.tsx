@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { controlClass, formLabelClass } from "@/lib/ui";
+import type { CheckoutMethod } from "@/lib/types";
 import { useWorkspace } from "@/lib/workspace-context";
 
 export default function SettingsPage() {
@@ -13,6 +14,7 @@ export default function SettingsPage() {
   const [businessName, setBusinessName] = useState(snapshot.data.businessName);
   const [currencyCode, setCurrencyCode] = useState(snapshot.data.currencyCode);
   const [storefrontEnabled, setStorefrontEnabled] = useState(snapshot.data.storefrontEnabled);
+  const [checkoutMethod, setCheckoutMethod] = useState<CheckoutMethod>(snapshot.data.checkoutMethod);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -21,7 +23,8 @@ export default function SettingsPage() {
     setBusinessName(snapshot.data.businessName);
     setCurrencyCode(snapshot.data.currencyCode);
     setStorefrontEnabled(snapshot.data.storefrontEnabled);
-  }, [snapshot.data.businessName, snapshot.data.currencyCode, snapshot.data.storefrontEnabled]);
+    setCheckoutMethod(snapshot.data.checkoutMethod);
+  }, [snapshot.data.businessName, snapshot.data.currencyCode, snapshot.data.storefrontEnabled, snapshot.data.checkoutMethod]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -29,7 +32,7 @@ export default function SettingsPage() {
     setMessage("");
     setSaving(true);
     try {
-      await updateBusiness(businessName, currencyCode.toUpperCase(), storefrontEnabled);
+      await updateBusiness(businessName, currencyCode.toUpperCase(), storefrontEnabled, checkoutMethod);
       setMessage("Settings saved.");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not save settings.");
@@ -48,11 +51,12 @@ export default function SettingsPage() {
           <div className="mt-6 space-y-5">
             <label className={formLabelClass}>Business name<input className={controlClass} value={businessName} onChange={(event) => setBusinessName(event.target.value)} required /></label>
             <label className={formLabelClass}>Currency code<input className={controlClass} maxLength={3} value={currencyCode} onChange={(event) => setCurrencyCode(event.target.value.toUpperCase())} required /><span className="mt-1 block text-xs font-normal text-muted-foreground">NGN is the default. Enter a three-letter ISO code if the business later changes currency.</span></label>
+            <label className={formLabelClass}>Customer checkout method<select className={controlClass} disabled={isDemo} onChange={(event) => setCheckoutMethod(event.target.value as CheckoutMethod)} value={checkoutMethod}><option value="paystack">Paystack — online card/bank payment</option><option value="whatsapp">WhatsApp — send the order to the owner</option></select><span className="mt-1 block text-xs font-normal text-muted-foreground">Customers see only the selected option at checkout. WhatsApp requests appear in the private inbox for follow-up.</span></label>
             <label className="flex items-start gap-3 rounded-lg border bg-muted/20 p-3 text-sm">
               <input checked={storefrontEnabled} className="mt-0.5 size-4 rounded border-input accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60" disabled={isDemo} onChange={(event) => setStorefrontEnabled(event.target.checked)} type="checkbox" />
               <span>
                 <span className="block font-medium">Publish the public store</span>
-                <span className="mt-1 block text-xs font-normal leading-5 text-muted-foreground">{isDemo ? "The demo catalog is always visible with sample data. " : "Make active products and in-stock variants visible at "}<Link className="font-medium text-foreground underline underline-offset-4" href="/store">/store</Link>. Live customer checkout activates when Paystack credentials are configured.</span>
+                <span className="mt-1 block text-xs font-normal leading-5 text-muted-foreground">{isDemo ? "The demo catalog is always visible with sample data. " : "Make active products and in-stock variants visible at "}<Link className="font-medium text-foreground underline underline-offset-4" href="/store">/store</Link>. The selected checkout method controls the public purchase path.</span>
               </span>
             </label>
           </div>

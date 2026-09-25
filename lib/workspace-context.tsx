@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { demoData } from "./demo-data";
 import { calculateOrderTotalCents } from "./order-calculations";
-import type { Order, OrderLine, Product, StockMovement, WorkspaceSnapshot } from "./types";
+import type { CheckoutMethod, Order, OrderLine, Product, StockMovement, WorkspaceSnapshot } from "./types";
 
 type ProductInput = {
   name: string;
@@ -48,7 +48,7 @@ type WorkspaceContextValue = {
   createOrder: (input: OrderInput) => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order["status"]) => Promise<void>;
   updatePaymentStatus: (orderId: string, status: Order["paymentStatus"]) => Promise<void>;
-  updateBusiness: (businessName: string, currencyCode: string, storefrontEnabled: boolean) => Promise<void>;
+  updateBusiness: (businessName: string, currencyCode: string, storefrontEnabled: boolean, checkoutMethod: CheckoutMethod) => Promise<void>;
 };
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -243,14 +243,14 @@ export function WorkspaceProvider({ initialSnapshot, children }: { initialSnapsh
     }));
   }
 
-  async function updateBusiness(businessName: string, currencyCode: string, storefrontEnabled: boolean) {
+  async function updateBusiness(businessName: string, currencyCode: string, storefrontEnabled: boolean, checkoutMethod: CheckoutMethod) {
     if (!isDemo) {
       const { updateBusinessSettings } = await import("@/app/(app)/actions");
-      await updateBusinessSettings({ businessName, currencyCode, storefrontEnabled });
+      await updateBusinessSettings({ businessName, currencyCode, storefrontEnabled, checkoutMethod });
       router.refresh();
       return;
     }
-    setSnapshot((current) => ({ ...current, data: { ...current.data, businessName, currencyCode, storefrontEnabled } }));
+    setSnapshot((current) => ({ ...current, data: { ...current.data, businessName, currencyCode, storefrontEnabled, checkoutMethod } }));
   }
 
   return <WorkspaceContext.Provider value={{ snapshot, isDemo, variants, categories, addProduct, updateProduct, addVariant, recordStock, createOrder, updateOrderStatus, updatePaymentStatus, updateBusiness }}>{children}</WorkspaceContext.Provider>;

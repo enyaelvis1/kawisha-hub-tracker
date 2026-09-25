@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { demoData } from "../lib/demo-data";
 import { applyStockDelta, calculateOrderTotalCents, canConfirmOrder } from "../lib/order-calculations";
+import { buildWhatsAppMessage, buildWhatsAppUrl } from "../lib/whatsapp";
 
 describe("order totals", () => {
   it("calculates totals from integer cents without floating point drift", () => {
@@ -55,5 +56,38 @@ describe("database guardrails", () => {
     assert.match(sql, /create or replace function public\.create_public_order/);
     assert.match(sql, /create or replace function public\.complete_public_payment/);
     assert.match(sql, /grant execute on function public\.complete_public_payment\(text\) to service_role/);
+  });
+
+  it("declares a validated WhatsApp request inbox without public reads", () => {
+    const sql = readFileSync(new URL("../supabase/migrations/202609250004_whatsapp_order_inbox.sql", import.meta.url), "utf8");
+    assert.match(sql, /create table public\.whatsapp_order_requests/);
+    assert.match(sql, /create or replace function public\.create_whatsapp_order_request/);
+    assert.match(sql, /grant execute on function public\.create_whatsapp_order_request\(uuid, text, text, text, text, text, jsonb\) to anon, authenticated/);
+    assert.match(sql, /create policy whatsapp_requests_member_select/);
+    assert.match(sql, /create policy whatsapp_requests_member_update/);
+    assert.match(sql, /does not have enough stock/);
+  });
+
+  it("declares an owner-controlled checkout method with Paystack as the default", () => {
+    const sql = readFileSync(new URL("../supabase/migrations/202609250005_checkout_method.sql", import.meta.url), "utf8");
+    assert.match(sql, /add column if not exists checkout_method text not null default 'paystack'/);
+    assert.match(sql, /checkout_method in \('paystack', 'whatsapp'\)/);
+  });
+
+  it("builds a pre-filled WhatsApp order message", () => {
+    const message = buildWhatsAppMessage({
+      businessName: "Kawisha Hub NG",
+      requestNumber: "KH-WA-001",
+      customerName: "A shopper",
+      customerPhone: "0800 000 0000",
+      deliveryAddress: "Lagos",
+      note: "Call first",
+      lines: [{ variantId: "variant-1", productName: "Tote", variantName: "Natural", sku: "TOTE-1", quantity: 2, unitPriceCents: 100000 }],
+      totalCents: 200000,
+      currencyCode: "NGN",
+    });
+    assert.match(message, /KH-WA-001/);
+    assert.match(message, /2 × Tote/);
+    assert.match(buildWhatsAppUrl("+234 800 000 0000", message), /^https:\/\/wa\.me\/2348000000000\?text=/);
   });
 });

@@ -6,7 +6,7 @@
 - `app/(app)/layout.tsx` is the private workspace boundary. It checks the signed-in user when Supabase variables exist, loads the live snapshot, then renders the client workspace provider and shell.
 - When both Supabase variables are blank, `lib/data.ts` returns fictional demo data. This is the only demo fallback. Live Supabase query errors throw and are not silently replaced by fixtures.
 - `app/store/page.tsx` is a public server-rendered route. In demo mode it uses the clearly labelled sample catalog; in live mode it reads only from businesses with `storefront_enabled = true` through the public read-only RLS policies.
-- `/store` hydrates a versioned browser cart. Checkout requires a customer Auth session, creates a business-scoped online order through `create_public_order`, and redirects to Paystack when server credentials are configured.
+- `/store` hydrates a versioned browser cart. The owner chooses one public checkout method in Settings: Paystack creates a business-scoped online order through `create_public_order`, while WhatsApp validates current product data through a server RPC, saves a business-scoped request for `/inbox`, and opens a pre-filled WhatsApp message. The WhatsApp path does not reserve stock, and the public UI/API do not expose the unselected payment path.
 - Product photos use the public `product-images` Storage bucket for reads; authenticated business members upload through a server action with file type/size validation and business-scoped Storage RLS.
 - Paystack callbacks verify the transaction server-side, while signed `charge.success` webhooks call the service-role-only reconciliation function. Successful payment deducts stock atomically or leaves a paid order flagged for owner review when stock is insufficient.
 - The UI is a small responsive shell with a desktop sidebar and a mobile navigation drawer. It uses the starter’s Tailwind/shadcn foundation and Lucide icons already present in the starter.
@@ -18,7 +18,7 @@
 3. In live mode, client forms call authenticated server actions in `app/(app)/actions.ts`; those actions use the server Supabase client and revalidate affected routes.
 4. The database remains the authority for tenant ownership, SKU uniqueness, monetary numeric values, stock availability, and order state transitions.
 
-The public store reads active products, active variants, category labels, and optional public product photo URLs. It does not expose customer, payment, or stock-movement data. Customer order history is visible only to the matching Auth user; workspace staff see the online order through the normal business-scoped order view.
+The public store reads active products, active variants, category labels, and optional public product photo URLs. It does not expose customer, payment, or stock-movement data. A shopper-submitted WhatsApp request is written only through the validated server RPC and is visible to business members in the inbox. Customer order history is visible only to the matching Auth user; workspace staff see the online order through the normal business-scoped order view.
 
 ## Manual order workflow
 

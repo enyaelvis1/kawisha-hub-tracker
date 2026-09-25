@@ -11,6 +11,7 @@ import {
   ListChecks,
   LogOut,
   Menu,
+  MessageCircle,
   Package,
   PanelLeft,
   Plus,
@@ -30,6 +31,7 @@ const navigation = [
   { href: "/products", label: "Products", icon: Package },
   { href: "/stock", label: "Stock", icon: Boxes },
   { href: "/orders", label: "Orders", icon: ClipboardList },
+  { href: "/inbox", label: "WhatsApp inbox", icon: MessageCircle },
   { href: "/progress", label: "Progress", icon: ListChecks },
   { href: "/store", label: "Public store", icon: ShoppingBag },
   { href: "/settings", label: "Settings", icon: Settings },
@@ -39,6 +41,7 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/products")) return "Products";
   if (pathname.startsWith("/stock")) return "Stock";
   if (pathname.startsWith("/orders")) return "Orders";
+  if (pathname.startsWith("/inbox")) return "WhatsApp inbox";
   if (pathname.startsWith("/progress")) return "Project progress";
   if (pathname.startsWith("/settings")) return "Settings";
   return "Overview";
@@ -52,6 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const lowStockCount = snapshot.data.products
     .flatMap((product) => product.variants)
     .filter((variant) => variant.stock <= variant.lowStockThreshold).length;
+  const whatsappInboxCount = snapshot.data.whatsappRequests.filter((request) => request.status === "new").length;
   const pageTitle = getPageTitle(pathname);
 
   async function signOut() {
@@ -118,6 +122,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {label === "Stock" && lowStockCount > 0 ? (
                   <span className={cn("ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold", sidebarCollapsed && "lg:hidden", active ? "bg-primary-foreground/15 text-primary-foreground" : "bg-amber-100 text-amber-800")}>
                     {lowStockCount}
+                  </span>
+                ) : null}
+                {label === "WhatsApp inbox" && whatsappInboxCount > 0 ? (
+                  <span className={cn("ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold", sidebarCollapsed && "lg:hidden", active ? "bg-primary-foreground/15 text-primary-foreground" : "bg-emerald-100 text-emerald-800")}>
+                    {whatsappInboxCount}
                   </span>
                 ) : null}
               </Link>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
-  ArrowUpRight,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -50,13 +49,6 @@ const categoryItems = [
   { label: "Perfumes", image: "/products/sample-scented-candle.png", tone: "from-pink-50 to-rose-100" },
   { label: "Household Items", image: "/marketing/order-fulfilment.png", tone: "from-stone-100 to-slate-200" },
   { label: "Kitchen Utensils", image: "/marketing/product-collection.png", tone: "from-orange-50 to-amber-100" },
-];
-
-const growthFeatures = [
-  { icon: Tag, title: "Flash sales", text: "Create urgency around selected products when promotions are configured." },
-  { icon: Sparkles, title: "Trending this week", text: "Highlight the products customers are viewing and buying most." },
-  { icon: Heart, title: "Recommended for you", text: "Add personalised product discovery as customer history grows." },
-  { icon: Package, title: "Back in stock", text: "Bring shoppers back when a favourite product returns." },
 ];
 
 const deliveryItems = [
@@ -611,10 +603,6 @@ export function LandingPage({ snapshot }: { snapshot: PublicStoreSnapshot }) {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-14 sm:py-20">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-700">Built to grow</p><h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Extra ways to bring shoppers back</h2></div><Button asChild variant="outline"><Link href="/dashboard">Open the tracker <ArrowUpRight aria-hidden="true" /></Link></Button></div>
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{growthFeatures.map((feature) => { const Icon = feature.icon; return <div className="rounded-2xl border bg-card p-5" key={feature.title}><Icon aria-hidden="true" className="size-5 text-orange-600" /><h3 className="mt-5 text-sm font-bold text-slate-950">{feature.title}</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">{feature.text}</p></div>; })}</div>
-        </section>
       </main>
 
       <footer className="border-t bg-white/70">

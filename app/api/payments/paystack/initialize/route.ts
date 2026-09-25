@@ -52,6 +52,16 @@ export async function POST(request: Request) {
   if (userError) return NextResponse.json({ error: "Could not verify your account." }, { status: 401 });
   if (!userData.user) return NextResponse.json({ error: "Sign in before checking out." }, { status: 401 });
 
+  const { data: business, error: businessError } = await supabase
+    .from("businesses")
+    .select("checkout_method")
+    .eq("id", businessId)
+    .eq("storefront_enabled", true)
+    .maybeSingle();
+  if (businessError) return NextResponse.json({ error: "Could not load the storefront." }, { status: 500 });
+  if (!business) return NextResponse.json({ error: "This storefront is not available." }, { status: 400 });
+  if (business.checkout_method !== "paystack") return NextResponse.json({ error: "Paystack checkout is not enabled for this store." }, { status: 409 });
+
   const { data: orderData, error: orderError } = await supabase.rpc("create_public_order", {
     p_business_id: businessId,
     p_customer_name: customerName,

@@ -2,6 +2,8 @@ export type OrderStatus = "new" | "confirmed" | "ready" | "completed" | "cancell
 export type PaymentStatus = "unpaid" | "partial" | "paid";
 export type OrderSource = "whatsapp" | "instagram" | "phone" | "in_person" | "other" | "web";
 export type MovementType = "opening_stock" | "restock" | "manual_correction" | "order_confirmed" | "order_cancelled";
+export type WhatsAppRequestStatus = "new" | "contacted" | "converted" | "closed";
+export type CheckoutMethod = "paystack" | "whatsapp";
 
 export type Variant = {
   id: string;
@@ -63,13 +65,40 @@ export type StockMovement = {
   orderNumber?: string;
 };
 
+export type WhatsAppOrderLine = {
+  variantId: string;
+  productName: string;
+  variantName: string;
+  sku: string;
+  quantity: number;
+  unitPriceCents: number;
+};
+
+export type WhatsAppOrderRequest = {
+  id: string;
+  requestNumber: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  deliveryAddress?: string;
+  note?: string;
+  status: WhatsAppRequestStatus;
+  totalCents: number;
+  createdAt: string;
+  updatedAt: string;
+  lines: WhatsAppOrderLine[];
+};
+
 export type WorkspaceData = {
   businessName: string;
   currencyCode: string;
   storefrontEnabled: boolean;
+  checkoutMethod: CheckoutMethod;
   products: Product[];
   orders: Order[];
   movements: StockMovement[];
+  whatsappRequests: WhatsAppOrderRequest[];
+  whatsappInboxAvailable: boolean;
 };
 
 export type WorkspaceMode = "demo" | "live";
@@ -85,6 +114,8 @@ export type PublicStoreData = {
   businessName: string;
   currencyCode: string;
   isPublished: boolean;
+  checkoutMethod: CheckoutMethod;
+  whatsappNumber: string;
   products: Product[];
 };
 
